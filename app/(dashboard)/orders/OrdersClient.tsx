@@ -115,7 +115,8 @@ export default function OrdersClient({
     router.push(`/orders?${params.toString()}`);
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined) => {
+    if (amount === undefined || amount === null) return 'Rs 0.00';
     return `Rs ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
   };
 
@@ -301,23 +302,23 @@ export default function OrdersClient({
               <div>
                 <h3 className="font-semibold mb-2">Billing Address</h3>
                 {(() => {
-                  // Use billingAddress if available and has address fields, otherwise fall back to user address
+                  // Use billingAddress if available and has address fields, otherwise fall back to shippingAddress
                   const billingAddr = selectedOrder.billingAddress;
+                  const shippingAddr = selectedOrder.shippingAddress;
                   const user = selectedOrder.user;
-                  const userAddress = user?.address;
                   
-                  // Check if billingAddress has address fields, if not use user address
+                  // Check if billingAddress has address fields, if not use shippingAddress
                   const hasBillingAddress = billingAddr && (billingAddr.street || billingAddr.city);
-                  const displayAddress = hasBillingAddress ? billingAddr : (userAddress ? {
-                    firstName: user?.name?.split(' ')[0] || '',
-                    lastName: user?.name?.split(' ').slice(1).join(' ') || '',
-                    street: userAddress.street || '',
-                    city: userAddress.city || '',
-                    state: userAddress.state || '',
-                    zipCode: userAddress.zipCode || '',
-                    country: userAddress.country || '',
-                    phone: user?.phone || '',
-                    email: user?.email || '',
+                  const displayAddress = hasBillingAddress ? billingAddr : (shippingAddr ? {
+                    firstName: shippingAddr.firstName || user?.name?.split(' ')[0] || '',
+                    lastName: shippingAddr.lastName || user?.name?.split(' ').slice(1).join(' ') || '',
+                    street: shippingAddr.street || '',
+                    city: shippingAddr.city || '',
+                    state: shippingAddr.state || '',
+                    zipCode: shippingAddr.zipCode || '',
+                    country: shippingAddr.country || '',
+                    phone: shippingAddr.phone || '',
+                    email: shippingAddr.email || user?.email || '',
                   } : null);
                   
                   if (displayAddress) {

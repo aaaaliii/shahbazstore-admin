@@ -6,9 +6,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const path = params.path.join('/');
+  const { path: pathArray } = await params;
+  const path = pathArray.join('/');
   // Try to get token from cookie first, then from Authorization header
   const cookieToken = (await cookies()).get('adminToken')?.value;
   const authHeader = request.headers.get('authorization');
@@ -49,9 +50,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const path = params.path.join('/');
+  const { path: pathArray } = await params;
+  const path = pathArray.join('/');
   // Try to get token from cookie first, then from Authorization header
   const cookieToken = (await cookies()).get('adminToken')?.value;
   const authHeader = request.headers.get('authorization');
@@ -92,9 +94,10 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const path = params.path.join('/');
+  const { path: pathArray } = await params;
+  const path = pathArray.join('/');
   // Try to get token from cookie first, then from Authorization header
   const cookieToken = (await cookies()).get('adminToken')?.value;
   const authHeader = request.headers.get('authorization');
@@ -135,9 +138,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const path = params.path.join('/');
+  const { path: pathArray } = await params;
+  const path = pathArray.join('/');
   // Try to get token from cookie first, then from Authorization header
   const cookieToken = (await cookies()).get('adminToken')?.value;
   const authHeader = request.headers.get('authorization');

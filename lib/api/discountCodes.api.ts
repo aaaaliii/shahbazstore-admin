@@ -64,7 +64,7 @@ const transformToBackend = (frontend: Partial<DiscountCode>): Partial<BackendDis
   if (frontend.active !== undefined) backend.isActive = frontend.active;
   // Use endDate as expiryDate (backend doesn't have startDate)
   if (frontend.endDate !== undefined) {
-    backend.expiryDate = frontend.endDate ? new Date(frontend.endDate) : null;
+    backend.expiryDate = frontend.endDate ? new Date(frontend.endDate) : undefined;
   }
   
   return backend;

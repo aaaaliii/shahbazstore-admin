@@ -1,5 +1,10 @@
 import api from './api';
 
+// Type guard for File objects
+const isFile = (obj: unknown): obj is File => {
+  return typeof window !== 'undefined' && obj instanceof File;
+};
+
 export interface Product {
   _id?: string;
   id?: string;
@@ -187,7 +192,7 @@ export const productsApi = {
     
     if (product.images && Array.isArray(product.images)) {
       product.images.forEach((img) => {
-        if (img instanceof File) {
+        if (isFile(img)) {
           imageFiles.push(img);
         } else if (typeof img === 'string' && img.trim() !== '') {
           imageUrls.push(img);
@@ -236,7 +241,7 @@ export const productsApi = {
     if (productData.variants) {
       if (productData.variants instanceof Map) {
         const variantsObj: any = {};
-        productData.variants.forEach((value, key) => {
+        productData.variants.forEach((value: any, key: string) => {
           variantsObj[key] = value;
         });
         productData.variants = JSON.stringify(variantsObj);
@@ -324,7 +329,7 @@ export const productsApi = {
     
     if (product.images && Array.isArray(product.images)) {
       product.images.forEach((img) => {
-        if (img instanceof File) {
+        if (isFile(img)) {
           imageFiles.push(img);
         } else if (typeof img === 'string' && img.trim() !== '') {
           imageUrls.push(img);
@@ -373,7 +378,7 @@ export const productsApi = {
     if (productData.variants) {
       if (productData.variants instanceof Map) {
         const variantsObj: any = {};
-        productData.variants.forEach((value, key) => {
+        productData.variants.forEach((value: any, key: string) => {
           variantsObj[key] = value;
         });
         productData.variants = JSON.stringify(variantsObj);

@@ -72,7 +72,7 @@ export const headerLinksApi = {
     const currentLinks = backendLinks.map(transformFromBackend);
     
     // Find the index of the link to move
-    const currentIndex = currentLinks.findIndex(link => link.id === id);
+    const currentIndex = currentLinks.findIndex((link: HeaderLink) => link.id === id);
     if (currentIndex === -1) {
       throw new Error('Header link not found');
     }

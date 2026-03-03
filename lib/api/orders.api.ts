@@ -23,6 +23,18 @@ export interface ShippingAddress {
   email?: string;
 }
 
+export interface BillingAddress {
+  firstName?: string;
+  lastName?: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  phone?: string;
+  email?: string;
+}
+
 export interface Order {
   _id?: string;
   id?: string;
