@@ -48,6 +48,37 @@ export const uploadApi = {
     };
   },
 
+  uploadCategoryImage: async (file: File): Promise<UploadResponse> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await api.post('/upload/category-image', formData);
+
+    // Backend returns full URL in both image and url fields
+    const fullUrl = response.data.image || response.data.url;
+    const pathname = response.data.publicId || fullUrl;
+    
+    return {
+      url: fullUrl, // Full URL for display/preview
+      publicId: fullUrl, // Use full URL for storage (backend stores full URLs)
+    };
+  },
+
+  uploadHomepageCategoryImage: async (file: File): Promise<UploadResponse> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await api.post('/upload/homepage-category-image', formData);
+
+    // Backend returns full URL in both image and url fields
+    const fullUrl = response.data.image || response.data.url;
+    
+    return {
+      url: fullUrl, // Full URL for display/preview
+      publicId: fullUrl, // Use full URL for storage
+    };
+  },
+
   deleteImage: async (_publicId: string): Promise<void> => {
     // Backend doesn't have a delete endpoint for uploads
     // Images are managed through product updates

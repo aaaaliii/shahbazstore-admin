@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { settingsApi, Settings, BannerSettings } from "../../../lib/api/settings.api";
+import { settingsApi, Settings, BannerSettings, HomepageCategory } from "../../../lib/api/settings.api";
+import { categoriesApi, Category } from "../../../lib/api/categories.api";
+import { uploadApi } from "../../../lib/api/upload.api";
+import ImageUpload from "../../../components/ImageUpload";
 import { toast } from "sonner";
 
 interface SettingsClientProps {
@@ -25,6 +28,16 @@ export default function SettingsClient({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingDelivery, setIsSavingDelivery] = useState(false);
+  const [homepageCategories, setHomepageCategories] = useState<HomepageCategory[]>(
+    initialSettings?.homepageCategories || [
+      { categoryId: '', image: '', position: 1, isActive: true },
+      { categoryId: '', image: '', position: 2, isActive: true },
+      { categoryId: '', image: '', position: 3, isActive: true },
+      { categoryId: '', image: '', position: 4, isActive: true }
+    ]
+  );
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [isSavingHomepage, setIsSavingHomepage] = useState(false);
 
   useEffect(() => {
     if (initialSettings) {
@@ -35,8 +48,23 @@ export default function SettingsClient({
         linkUrl: initialSettings.banner?.linkUrl || '/products',
         isActive: initialSettings.banner?.isActive ?? true,
       });
+      if (initialSettings.homepageCategories && initialSettings.homepageCategories.length === 4) {
+        setHomepageCategories(initialSettings.homepageCategories);
+      }
     }
   }, [initialSettings]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const cats = await categoriesApi.getAll();
+        setAllCategories(cats);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const fetchSettings = async () => {
     try {
@@ -120,6 +148,88 @@ export default function SettingsClient({
       toast.error(error?.message || "Failed to update delivery charges settings");
     } finally {
       setIsSavingDelivery(false);
+    }
+  };
+
+  const handleHomepageCategoryUpload = async (position: number, url: string) => {
+    const updated = [...homepageCategories];
+    const index = updated.findIndex(cat => cat.position === position);
+    
+    if (index >= 0) {
+      updated[index].image = url;
+    } else {
+      updated.push({
+        categoryId: '',
+        image: url,
+        position,
+        isActive: true
+      });
+    }
+    
+    setHomepageCategories(updated);
+  };
+
+  const handleHomepageCategoryChange = (position: number, field: string, value: any) => {
+    const updated = [...homepageCategories];
+    const index = updated.findIndex(cat => cat.position === position);
+    
+    if (index >= 0) {
+      updated[index] = { ...updated[index], [field]: value };
+    } else {
+      updated.push({
+        categoryId: '',
+        image: '',
+        position,
+        isActive: true,
+        [field]: value
+      });
+    }
+    
+    setHomepageCategories(updated);
+  };
+
+  const handleHomepageSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate exactly 4 categories with all required fields
+    const validCategories = homepageCategories.filter(
+      cat => cat.categoryId && cat.image && cat.position >= 1 && cat.position <= 4
+    );
+    
+    if (validCategories.length !== 4) {
+      toast.error("Exactly 4 categories are required. Please fill all positions (1-4) with category and image.");
+      return;
+    }
+    
+    // Ensure positions 1-4 are all present
+    const positions = validCategories.map(cat => cat.position).sort((a, b) => a - b);
+    if (positions[0] !== 1 || positions[1] !== 2 || positions[2] !== 3 || positions[3] !== 4) {
+      toast.error("All positions 1, 2, 3, and 4 must be filled with valid categories and images.");
+      return;
+    }
+    
+    try {
+      setIsSavingHomepage(true);
+      const updated = await settingsApi.updateHomepageCategories(homepageCategories);
+      setHomepageCategories(updated);
+      setSettings(prev => prev ? {
+        ...prev,
+        homepageCategories: updated
+      } : {
+        banner: {
+          text: '',
+          linkText: '',
+          linkUrl: '',
+          isActive: false
+        },
+        homepageCategories: updated
+      } as Settings);
+      toast.success("Homepage categories updated successfully!");
+    } catch (error: any) {
+      console.error('Error updating homepage categories:', error);
+      toast.error(error?.response?.data?.message || error?.message || "Failed to update homepage categories");
+    } finally {
+      setIsSavingHomepage(false);
     }
   };
 
@@ -291,6 +401,152 @@ export default function SettingsClient({
               className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
             >
               {isSavingDelivery ? "Saving..." : "Save Delivery Settings"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Homepage Categories Section */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Homepage Categories</h2>
+          <p className="text-sm text-gray-600">
+            Select exactly 4 categories to display on the homepage with custom images. Each category must have a unique position (1-4).
+          </p>
+          <p className="text-sm text-red-600 font-medium mt-1">
+            ⚠️ Exactly 4 categories are required - no more, no less.
+          </p>
+        </div>
+
+        <form onSubmit={handleHomepageSubmit} className="space-y-6">
+          {[1, 2, 3, 4].map((position) => {
+            const category = homepageCategories.find(cat => cat.position === position) || {
+              categoryId: '',
+              image: '',
+              position,
+              isActive: true
+            };
+            return (
+              <div key={position} className="border border-gray-200 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-gray-700 mb-4">Position {position}</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Category *
+                    </label>
+                    <select
+                      value={category.categoryId}
+                      onChange={(e) => handleHomepageCategoryChange(position, 'categoryId', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {allCategories
+                        .filter(cat => !cat.parentId) // Only top-level categories
+                        .map(cat => (
+                          <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Image *
+                    </label>
+                    <ImageUpload
+                      onUpload={(url) => handleHomepageCategoryUpload(position, url)}
+                      currentImage={category.image}
+                      label={`Upload Image for Position ${position}`}
+                      id={`image-upload-position-${position}`}
+                      customUploadFn={async (file: File) => {
+                        const response = await uploadApi.uploadHomepageCategoryImage(file);
+                        return {
+                          url: response.url,
+                          publicId: response.publicId || response.url,
+                        };
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Title (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={category.title || ''}
+                      onChange={(e) => handleHomepageCategoryChange(position, 'title', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="e.g., black Armchairs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Subtitle (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={category.subtitle || ''}
+                      onChange={(e) => handleHomepageCategoryChange(position, 'subtitle', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="e.g., check new arrivals"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Link
+                    </label>
+                    <input
+                      type="text"
+                      value={category.link || '/products'}
+                      onChange={(e) => handleHomepageCategoryChange(position, 'link', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="/products"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Link Text
+                    </label>
+                    <input
+                      type="text"
+                      value={category.linkText || 'shop now'}
+                      onChange={(e) => handleHomepageCategoryChange(position, 'linkText', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="shop now"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`homepage-active-${position}`}
+                    checked={category.isActive !== false}
+                    onChange={(e) => handleHomepageCategoryChange(position, 'isActive', e.target.checked)}
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor={`homepage-active-${position}`} className="ml-2 block text-sm text-gray-700">
+                    Show on homepage
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="submit"
+              disabled={isSavingHomepage}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+            >
+              {isSavingHomepage ? "Saving..." : "Save Homepage Categories"}
             </button>
           </div>
         </form>

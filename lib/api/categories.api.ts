@@ -5,6 +5,7 @@ export interface Category {
   id?: string;
   name: string;
   slug: string;
+  image?: string;
   parentId?: string | null;
   parent?: Category | null;
   children?: Category[];

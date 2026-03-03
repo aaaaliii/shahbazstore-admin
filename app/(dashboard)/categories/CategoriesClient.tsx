@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { categoriesApi, Category } from "../../../lib/api/categories.api";
+import { uploadApi } from "../../../lib/api/upload.api";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import ImageUpload from "../../../components/ImageUpload";
 
 interface CategoriesClientProps {
   initialCategories: Category[];
@@ -14,7 +16,7 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
   const categories = initialCategories; // Use props directly, will update on refresh
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({ name: "", slug: "", parentId: "" });
+  const [formData, setFormData] = useState({ name: "", slug: "", parentId: "", image: "" });
 
   const refreshCategories = () => {
     router.refresh();
@@ -35,7 +37,7 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
       }
       setIsModalOpen(false);
       setEditingCategory(null);
-      setFormData({ name: "", slug: "", parentId: "" });
+      setFormData({ name: "", slug: "", parentId: "", image: "" });
       refreshCategories();
     } catch (error: any) {
       console.error("Error saving category:", error);
@@ -49,6 +51,7 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
       name: category.name,
       slug: category.slug,
       parentId: category.parentId?.toString() || "",
+      image: category.image || "",
     });
     setIsModalOpen(true);
   };
@@ -71,6 +74,32 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
     return parent?.name || "Unknown";
   };
 
+  const formatImageUrl = (imgPath: string | undefined): string => {
+    if (!imgPath) return '';
+    // If already a full URL, return as is
+    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+      return imgPath;
+    }
+    // If it's a path, format it
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const BACKEND_BASE_URL = API_BASE_URL.replace('/api', '');
+    return imgPath.startsWith('/') 
+      ? `${BACKEND_BASE_URL}${imgPath}`
+      : `${BACKEND_BASE_URL}/${imgPath}`;
+  };
+
+  const handleImageUpload = async (url: string) => {
+    setFormData({ ...formData, image: url });
+  };
+
+  const handleCustomImageUpload = async (file: File) => {
+    const response = await uploadApi.uploadCategoryImage(file);
+    return {
+      url: response.url,
+      publicId: response.publicId || response.url,
+    };
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -78,7 +107,7 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
         <button
           onClick={() => {
             setEditingCategory(null);
-            setFormData({ name: "", slug: "", parentId: "" });
+            setFormData({ name: "", slug: "", parentId: "", image: "" });
             setIsModalOpen(true);
           }}
           className="bg-custom-blue text-white px-4 py-2 rounded-md hover:bg-custom-blue-light transition-colors"
@@ -91,6 +120,9 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-custom-blue">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                Image
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                 Name
               </th>
@@ -118,6 +150,19 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                   key={category._id || category.id}
                   className={category.parentId ? 'bg-gray-50' : ''}
                 >
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {category.image ? (
+                      <img
+                        src={formatImageUrl(category.image)}
+                        alt={category.name}
+                        className="h-12 w-12 object-cover rounded border border-gray-300"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 bg-gray-200 rounded border border-gray-300 flex items-center justify-center text-gray-400 text-xs">
+                        No Image
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {category.parentId && <span className="text-gray-400 mr-2">└─</span>}
                     {category.name}
@@ -208,6 +253,20 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                 </select>
                 <p className="mt-1 text-xs text-gray-500">
                   Only top-level categories can be selected as parents (max 2 levels deep)
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category Image
+                </label>
+                <ImageUpload
+                  onUpload={handleImageUpload}
+                  currentImage={formData.image}
+                  label="Upload Category Image"
+                  customUploadFn={handleCustomImageUpload}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Upload a single image for this category (JPG, PNG, GIF, WebP - Max 5MB)
                 </p>
               </div>
               <div className="flex justify-end space-x-3">

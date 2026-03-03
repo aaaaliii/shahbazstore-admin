@@ -10,6 +10,8 @@ interface ImageUploadProps {
   label?: string;
   multiple?: boolean;
   onMultipleUpload?: (urls: string[]) => void;
+  customUploadFn?: (file: File) => Promise<{ url: string; publicId?: string }>;
+  id?: string;
 }
 
 export default function ImageUpload({
@@ -18,6 +20,8 @@ export default function ImageUpload({
   label = "Upload Image",
   multiple = false,
   onMultipleUpload,
+  customUploadFn,
+  id,
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,7 +78,9 @@ export default function ImageUpload({
         reader.readAsDataURL(file);
 
         // Upload to backend
-        const response = await uploadApi.uploadImage(file);
+        const response = customUploadFn 
+          ? await customUploadFn(file)
+          : await uploadApi.uploadImage(file);
         // Use publicId (the path) for storage, but full URL for preview
         onUpload(response.publicId || response.url);
         setPreview(response.url); // Update preview with full URL for display
@@ -82,7 +88,13 @@ export default function ImageUpload({
       }
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast.error(error.response?.data?.error || "Failed to upload image");
+      // Check for error message in multiple possible locations
+      const errorMessage = 
+        error.response?.data?.message || 
+        error.response?.data?.error || 
+        error.message || 
+        "Failed to upload image";
+      toast.error(errorMessage);
       // Reset preview to current image on error
       setPreview(currentImage || null);
     } finally {
@@ -115,10 +127,10 @@ export default function ImageUpload({
             onChange={handleFileChange}
             disabled={uploading}
             className="hidden"
-            id="image-upload-multiple"
+            id={id || "image-upload-multiple"}
           />
           <label
-            htmlFor="image-upload-multiple"
+            htmlFor={id || "image-upload-multiple"}
             className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
               uploading
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -166,10 +178,10 @@ export default function ImageUpload({
             onChange={handleFileChange}
             disabled={uploading}
             className="hidden"
-            id="image-upload-single"
+            id={id || "image-upload-single"}
           />
           <label
-            htmlFor="image-upload-single"
+            htmlFor={id || "image-upload-single"}
             className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
               uploading
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"

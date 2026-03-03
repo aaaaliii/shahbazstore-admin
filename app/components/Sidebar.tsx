@@ -37,7 +37,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="h-full bg-custom-gradient-blue text-white w-72">
+    <aside className="h-screen bg-custom-gradient-blue text-white w-72 flex flex-col">
       {/* Logo */}
       <div className="flex items-center justify-center h-16 border-b border-white/10">
         <span className="font-bold text-xl">Shahbaz Store</span>

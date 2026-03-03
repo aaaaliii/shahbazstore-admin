@@ -14,7 +14,7 @@ export default function LayoutContent({
   return (
     <div className="flex min-h-screen bg-[#FCFDFF]">
       {/* Desktop Sidebar */}
-      <div className="hidden md:block fixed left-0 top-0 h-full">
+      <div className="hidden md:block fixed left-0 top-0 h-screen w-72 z-30">
         <Sidebar />
       </div>
 
@@ -55,7 +55,7 @@ export default function LayoutContent({
         </aside>
       </div>
 
-      <main className="flex-1 md:ml-72 bg-[#FCFDFF]">
+      <main className="flex-1 w-full md:ml-72 bg-[#FCFDFF] min-h-screen">
         {/* Mobile hamburger */}
         <div className="md:hidden mb-4 p-4">
           <div className="flex justify-between items-center">
@@ -70,7 +70,7 @@ export default function LayoutContent({
           </div>
         </div>
 
-        <div className="p-6 h-full">{children}</div>
+        <div className="p-6 md:p-8 h-full max-w-7xl mx-auto w-full">{children}</div>
       </main>
     </div>
   );

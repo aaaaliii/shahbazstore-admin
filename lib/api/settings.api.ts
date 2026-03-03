@@ -7,6 +7,22 @@ export interface BannerSettings {
   isActive: boolean;
 }
 
+export interface HomepageCategory {
+  categoryId: string;
+  image: string;
+  position: number;
+  title?: string;
+  subtitle?: string;
+  link?: string;
+  linkText?: string;
+  isActive?: boolean;
+  category?: {
+    _id: string;
+    name: string;
+    slug: string;
+  };
+}
+
 export interface Settings {
   _id?: string;
   id?: string;
@@ -30,6 +46,7 @@ export interface Settings {
     amount: number;
     freeDeliveryThreshold: number;
   };
+  homepageCategories?: HomepageCategory[];
 }
 
 export interface SettingsResponse {
@@ -56,5 +73,12 @@ export const settingsApi = {
   update: async (settings: Partial<Settings>): Promise<Settings> => {
     const response = await api.put('/settings', settings);
     return response.data.settings;
+  },
+  
+  updateHomepageCategories: async (categories: HomepageCategory[]): Promise<HomepageCategory[]> => {
+    const response = await api.put('/settings/homepage-categories', {
+      homepageCategories: categories
+    });
+    return response.data.homepageCategories || [];
   },
 };
