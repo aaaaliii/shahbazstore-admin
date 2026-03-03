@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: Open-Sans-Semi-Bold;
+  src: url(../public/font/OpenSans/static/OpenSans-SemiBold.ttf);
+}
+
+@font-face {
+  font-family: Open-Sans-Bold;
+  src: url(../public/font/OpenSans/static/OpenSans-Bold.ttf);
+}
+
+@font-face {
+  font-family: Open-Sans-Regular;
+  src: url(../public/font/OpenSans/static/OpenSans-Regular.ttf);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #700e77;
+  --custom-blue: #700e77;
+}
+
+body {
+  font-family: Open-Sans-Regular !important;
+}
+
+h1 {
+  font-family: Open-Sans-Bold;
+}
