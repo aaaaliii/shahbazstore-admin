@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import OrdersClient from './OrdersClient';
 import { ordersApi, Order } from '../../../lib/api/orders.api';
+import { PageSpinner } from "../../components/Spinner";
 
 export default function OrdersPage() {
   const searchParams = useSearchParams();
@@ -41,11 +42,7 @@ export default function OrdersPage() {
   }, [searchParams]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading orders...</div>
-      </div>
-    );
+    return <PageSpinner fullScreen />;
   }
 
   return (

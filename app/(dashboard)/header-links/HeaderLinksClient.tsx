@@ -5,7 +5,11 @@ import { headerLinksApi, HeaderLink } from "../../../lib/api/headerLinks.api";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
-import { VALID_INTERNAL_ROUTES, validateHeaderLinkUrl } from "../../../lib/config/routes";
+import {
+  VALID_INTERNAL_ROUTES,
+  validateHeaderLinkUrl,
+} from "../../../lib/config/routes";
+import Spinner from "../../components/Spinner";
 
 interface HeaderLinksClientProps {
   initialLinks: HeaderLink[];
@@ -18,7 +22,11 @@ export default function HeaderLinksClient({
   const [links, setLinks] = useState<HeaderLink[]>(initialLinks);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<HeaderLink | null>(null);
-  const [formData, setFormData] = useState({ label: "", href: "", openInNewTab: false });
+  const [formData, setFormData] = useState({
+    label: "",
+    href: "",
+    openInNewTab: false,
+  });
   const [urlError, setUrlError] = useState("");
   const [isUrlExternal, setIsUrlExternal] = useState(false);
   const [reorderingId, setReorderingId] = useState<string | null>(null);
@@ -34,7 +42,7 @@ export default function HeaderLinksClient({
       const fetchedLinks = await headerLinksApi.getAll();
       setLinks(fetchedLinks);
     } catch (error) {
-      console.error('Error fetching links:', error);
+      console.error("Error fetching links:", error);
       toast.error("Failed to refresh links");
     } finally {
       setIsLoading(false);
@@ -51,45 +59,48 @@ export default function HeaderLinksClient({
   const handleUrlChange = (url: string) => {
     setFormData({ ...formData, href: url });
     setUrlError("");
-    
+
     // Check if it's an external URL
-    const isExternal = url.startsWith('http://') || url.startsWith('https://');
+    const isExternal = url.startsWith("http://") || url.startsWith("https://");
     setIsUrlExternal(isExternal);
-    
+
     // If external, automatically enable openInNewTab
     if (isExternal) {
       setFormData({ ...formData, href: url, openInNewTab: true });
     }
-    
+
     // Validate URL
-    const validation = validateHeaderLinkUrl(url, isExternal || formData.openInNewTab);
-    if (!validation.valid && url.trim() !== '') {
+    const validation = validateHeaderLinkUrl(
+      url,
+      isExternal || formData.openInNewTab,
+    );
+    if (!validation.valid && url.trim() !== "") {
       setUrlError(validation.error || "Invalid URL");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate URL before submitting
     const validation = validateHeaderLinkUrl(
-      formData.href, 
-      isUrlExternal || formData.openInNewTab
+      formData.href,
+      isUrlExternal || formData.openInNewTab,
     );
-    
+
     if (!validation.valid) {
       setUrlError(validation.error || "Invalid URL");
       toast.error(validation.error || "Please fix the URL before saving");
       return;
     }
-    
+
     try {
       const submitData = {
         label: formData.label,
         href: formData.href,
-        openInNewTab: isUrlExternal || formData.openInNewTab
+        openInNewTab: isUrlExternal || formData.openInNewTab,
       };
-      
+
       if (editingLink) {
         await headerLinksApi.update(editingLink.id!, submitData);
         toast.success("Header link updated!");
@@ -102,10 +113,13 @@ export default function HeaderLinksClient({
       await fetchLinks();
       router.refresh();
     } catch (error: any) {
-      console.error('Error saving link:', error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.errors?.[0]?.message || "Failed to save";
+      console.error("Error saving link:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.errors?.[0]?.message ||
+        "Failed to save";
       toast.error(errorMessage);
-      if (error.response?.data?.errors?.[0]?.field === 'url') {
+      if (error.response?.data?.errors?.[0]?.field === "url") {
         setUrlError(error.response.data.errors[0].message);
       }
     }
@@ -113,11 +127,12 @@ export default function HeaderLinksClient({
 
   const handleEdit = (link: HeaderLink) => {
     setEditingLink(link);
-    const isExternal = link.href.startsWith('http://') || link.href.startsWith('https://');
-    setFormData({ 
-      label: link.label, 
+    const isExternal =
+      link.href.startsWith("http://") || link.href.startsWith("https://");
+    setFormData({
+      label: link.label,
       href: link.href,
-      openInNewTab: link.openInNewTab || isExternal
+      openInNewTab: link.openInNewTab || isExternal,
     });
     setIsUrlExternal(isExternal);
     setUrlError("");
@@ -132,7 +147,7 @@ export default function HeaderLinksClient({
       await fetchLinks();
       router.refresh();
     } catch (error: any) {
-      console.error('Error deleting link:', error);
+      console.error("Error deleting link:", error);
       toast.error(error.response?.data?.message || "Failed to delete");
     }
   };
@@ -144,7 +159,7 @@ export default function HeaderLinksClient({
       await fetchLinks();
       router.refresh();
     } catch (error: any) {
-      console.error('Error reordering:', error);
+      console.error("Error reordering:", error);
       toast.error(error.response?.data?.message || "Failed to reorder");
     } finally {
       setReorderingId(null);
@@ -153,7 +168,7 @@ export default function HeaderLinksClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-900">
           Header Links Management
         </h1>
@@ -174,7 +189,9 @@ export default function HeaderLinksClient({
       </p>
 
       {isLoading && (
-        <div className="text-center py-4 text-gray-500">Loading...</div>
+        <div className="flex justify-center py-8">
+          <Spinner size="md" />
+        </div>
       )}
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
@@ -213,7 +230,9 @@ export default function HeaderLinksClient({
                       <button
                         type="button"
                         onClick={() => handleReorder(link.id!, "up")}
-                        disabled={index === 0 || reorderingId === link.id || isLoading}
+                        disabled={
+                          index === 0 || reorderingId === link.id || isLoading
+                        }
                         className="p-1 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
                         title="Move up"
                       >
@@ -223,7 +242,9 @@ export default function HeaderLinksClient({
                         type="button"
                         onClick={() => handleReorder(link.id!, "down")}
                         disabled={
-                          index === links.length - 1 || reorderingId === link.id || isLoading
+                          index === links.length - 1 ||
+                          reorderingId === link.id ||
+                          isLoading
                         }
                         className="p-1 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
                         title="Move down"
@@ -289,7 +310,9 @@ export default function HeaderLinksClient({
                 </label>
                 <div>
                   <select
-                    value={formData.href.startsWith('http') ? '' : formData.href}
+                    value={
+                      formData.href.startsWith("http") ? "" : formData.href
+                    }
                     onChange={(e) => {
                       if (e.target.value) {
                         handleUrlChange(e.target.value);
@@ -310,7 +333,7 @@ export default function HeaderLinksClient({
                     value={formData.href}
                     onChange={(e) => handleUrlChange(e.target.value)}
                     className={`w-full px-3 py-2 border rounded-md ${
-                      urlError ? 'border-red-500' : 'border-gray-300'
+                      urlError ? "border-red-500" : "border-gray-300"
                     }`}
                     placeholder="e.g. /products or https://example.com"
                   />
@@ -334,7 +357,10 @@ export default function HeaderLinksClient({
                       type="checkbox"
                       checked={formData.openInNewTab}
                       onChange={(e) =>
-                        setFormData({ ...formData, openInNewTab: e.target.checked })
+                        setFormData({
+                          ...formData,
+                          openInNewTab: e.target.checked,
+                        })
                       }
                       className="mr-2"
                     />

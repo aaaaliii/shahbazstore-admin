@@ -11,12 +11,19 @@ interface CategoriesClientProps {
   initialCategories: Category[];
 }
 
-export default function CategoriesClient({ initialCategories }: CategoriesClientProps) {
+export default function CategoriesClient({
+  initialCategories,
+}: CategoriesClientProps) {
   const router = useRouter();
   const categories = initialCategories; // Use props directly, will update on refresh
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({ name: "", slug: "", parentId: "", image: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    slug: "",
+    parentId: "",
+    image: "",
+  });
 
   const refreshCategories = () => {
     router.refresh();
@@ -26,7 +33,10 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
     e.preventDefault();
     try {
       if (editingCategory) {
-        await categoriesApi.update(editingCategory._id || editingCategory.id || "", formData);
+        await categoriesApi.update(
+          editingCategory._id || editingCategory.id || "",
+          formData,
+        );
         toast.success("Category updated successfully!");
       } else {
         await categoriesApi.create({
@@ -70,20 +80,23 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
 
   const getParentName = (parentId?: string | null) => {
     if (!parentId) return "None";
-    const parent = categories.find((c) => c._id === parentId || c.id === parentId);
+    const parent = categories.find(
+      (c) => c._id === parentId || c.id === parentId,
+    );
     return parent?.name || "Unknown";
   };
 
   const formatImageUrl = (imgPath: string | undefined): string => {
-    if (!imgPath) return '';
+    if (!imgPath) return "";
     // If already a full URL, return as is
-    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+    if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
       return imgPath;
     }
     // If it's a path, format it
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    const BACKEND_BASE_URL = API_BASE_URL.replace('/api', '');
-    return imgPath.startsWith('/') 
+    const API_BASE_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+    const BACKEND_BASE_URL = API_BASE_URL.replace("/api", "");
+    return imgPath.startsWith("/")
       ? `${BACKEND_BASE_URL}${imgPath}`
       : `${BACKEND_BASE_URL}/${imgPath}`;
   };
@@ -102,7 +115,7 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-900">Categories</h1>
         <button
           onClick={() => {
@@ -146,9 +159,9 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                 return a.name.localeCompare(b.name);
               })
               .map((category) => (
-                <tr 
+                <tr
                   key={category._id || category.id}
-                  className={category.parentId ? 'bg-gray-50' : ''}
+                  className={category.parentId ? "bg-gray-50" : ""}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     {category.image ? (
@@ -164,7 +177,9 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {category.parentId && <span className="text-gray-400 mr-2">└─</span>}
+                    {category.parentId && (
+                      <span className="text-gray-400 mr-2">└─</span>
+                    )}
                     {category.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -181,7 +196,9 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(category._id || category.id || "")}
+                      onClick={() =>
+                        handleDelete(category._id || category.id || "")
+                      }
                       className="text-red-600 hover:text-red-900"
                     >
                       Delete
@@ -209,7 +226,9 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
@@ -221,7 +240,9 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                   type="text"
                   required
                   value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, slug: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
@@ -231,14 +252,19 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                 </label>
                 <select
                   value={formData.parentId}
-                  onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parentId: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="">None (Top Level)</option>
                   {categories
                     .filter((c) => {
                       // Exclude the category being edited
-                      if (c._id === editingCategory?._id || c.id === editingCategory?.id) {
+                      if (
+                        c._id === editingCategory?._id ||
+                        c.id === editingCategory?.id
+                      ) {
                         return false;
                       }
                       // Only show top-level categories (categories without parents) as parent options
@@ -252,7 +278,8 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                     ))}
                 </select>
                 <p className="mt-1 text-xs text-gray-500">
-                  Only top-level categories can be selected as parents (max 2 levels deep)
+                  Only top-level categories can be selected as parents (max 2
+                  levels deep)
                 </p>
               </div>
               <div>
@@ -266,7 +293,8 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
                   customUploadFn={handleCustomImageUpload}
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Upload a single image for this category (JPG, PNG, GIF, WebP - Max 5MB)
+                  Upload a single image for this category (JPG, PNG, GIF, WebP -
+                  Max 5MB)
                 </p>
               </div>
               <div className="flex justify-end space-x-3">
@@ -291,4 +319,3 @@ export default function CategoriesClient({ initialCategories }: CategoriesClient
     </div>
   );
 }
-

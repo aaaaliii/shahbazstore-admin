@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import DiscountCodesClient from "./DiscountCodesClient";
 import { discountCodesApi, DiscountCode } from "../../../lib/api/discountCodes.api";
+import { PageSpinner } from "../../components/Spinner";
 
 export default function DiscountCodesPage() {
   const [codes, setCodes] = useState<DiscountCode[]>([]);
@@ -26,11 +27,7 @@ export default function DiscountCodesPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading discount codes...</div>
-      </div>
-    );
+    return <PageSpinner fullScreen />;
   }
 
   return (

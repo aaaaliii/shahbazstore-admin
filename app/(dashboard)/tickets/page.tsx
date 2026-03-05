@@ -97,7 +97,7 @@ export default function TicketsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-900">Tickets</h1>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -111,7 +111,7 @@ export default function TicketsPage() {
       {isModalOpen && (
         <div className="fixed !mt-0 inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4 mb-4">
               <h2 className="text-xl font-semibold text-gray-900">
                 Create New Ticket
               </h2>
@@ -241,7 +241,7 @@ export default function TicketsPage() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColor(
-                      ticket.status
+                      ticket.status,
                     )}`}
                   >
                     {ticket.status}
@@ -250,7 +250,7 @@ export default function TicketsPage() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-medium rounded-full ${getPriorityColor(
-                      ticket.priority
+                      ticket.priority,
                     )}`}
                   >
                     {ticket.priority}

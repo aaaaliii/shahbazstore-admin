@@ -51,18 +51,24 @@ export default function ProductsClient({
         let allFetchedProducts: Product[] = [];
         let currentPage = 1;
         let hasMore = true;
-        
+
         while (hasMore) {
-          const response = await productsApi.getAll({ page: currentPage, limit: 100 });
+          const response = await productsApi.getAll({
+            page: currentPage,
+            limit: 100,
+          });
           allFetchedProducts = [...allFetchedProducts, ...response.products];
-          
-          if (response.products.length < 100 || currentPage >= response.pagination.pages) {
+
+          if (
+            response.products.length < 100 ||
+            currentPage >= response.pagination.pages
+          ) {
             hasMore = false;
           } else {
             currentPage++;
           }
         }
-        
+
         setAllProducts(allFetchedProducts);
       } catch (error) {
         console.error("Error fetching products for selector:", error);
@@ -109,48 +115,57 @@ export default function ProductsClient({
   }
 
   // Helper function to convert backend variants (Map) to form format
-  const convertVariantsFromBackend = (variants: unknown): Record<string, VariantOption[]> => {
+  const convertVariantsFromBackend = (
+    variants: unknown,
+  ): Record<string, VariantOption[]> => {
     if (!variants) return {};
-    
+
     // If it's already an object, return as is
-    if (typeof variants === 'object' && variants !== null && !(variants instanceof Map)) {
+    if (
+      typeof variants === "object" &&
+      variants !== null &&
+      !(variants instanceof Map)
+    ) {
       return variants as Record<string, VariantOption[]>;
     }
-    
+
     // If it's a Map, convert to object
     if (variants instanceof Map) {
       const result: Record<string, VariantOption[]> = {};
       variants.forEach((value, key) => {
-        result[key] = Array.isArray(value) ? value as VariantOption[] : [];
+        result[key] = Array.isArray(value) ? (value as VariantOption[]) : [];
       });
       return result;
     }
-    
+
     return {};
   };
 
   // Helper function to convert form variants to backend format
-  const convertVariantsToBackend = (variants: Record<string, VariantOption[]>): Record<string, VariantOption[]> => {
+  const convertVariantsToBackend = (
+    variants: Record<string, VariantOption[]>,
+  ): Record<string, VariantOption[]> => {
     if (!variants || Object.keys(variants).length === 0) {
       return {};
     }
-    
+
     // Ensure each variant option has required fields
     const cleaned: Record<string, any[]> = {};
     Object.entries(variants).forEach(([variantType, options]) => {
       if (Array.isArray(options) && options.length > 0) {
         cleaned[variantType] = options.map((option: VariantOption) => ({
           name: variantType,
-          value: option.value || '',
-          priceModifier: parseFloat(option.priceModifier?.toString() || '0') || 0,
-          stock: parseFloat(option.stock?.toString() || '0') || 0,
-          sku: option.sku || '',
-          barcode: option.barcode || '',
-          image: option.image || ''
+          value: option.value || "",
+          priceModifier:
+            parseFloat(option.priceModifier?.toString() || "0") || 0,
+          stock: parseFloat(option.stock?.toString() || "0") || 0,
+          sku: option.sku || "",
+          barcode: option.barcode || "",
+          image: option.image || "",
         }));
       }
     });
-    
+
     return cleaned;
   };
 
@@ -167,8 +182,8 @@ export default function ProductsClient({
         ...formData,
         variants: {
           ...formData.variants,
-          [trimmedName]: []
-        }
+          [trimmedName]: [],
+        },
       });
     }
   };
@@ -179,7 +194,7 @@ export default function ProductsClient({
       delete newVariants[typeName];
       setFormData({
         ...formData,
-        variants: newVariants
+        variants: newVariants,
       });
     }
   };
@@ -192,15 +207,15 @@ export default function ProductsClient({
       stock: 0,
       sku: "",
       barcode: "",
-      image: ""
+      image: "",
     };
-    
+
     setFormData({
       ...formData,
       variants: {
         ...formData.variants,
-        [typeName]: [...(formData.variants[typeName] || []), newOption]
-      }
+        [typeName]: [...(formData.variants[typeName] || []), newOption],
+      },
     });
   };
 
@@ -212,24 +227,29 @@ export default function ProductsClient({
         ...formData,
         variants: {
           ...formData.variants,
-          [typeName]: newOptions
-        }
+          [typeName]: newOptions,
+        },
       });
     }
   };
 
-  const updateVariantOption = (typeName: string, index: number, field: keyof VariantOption, value: string | number) => {
+  const updateVariantOption = (
+    typeName: string,
+    index: number,
+    field: keyof VariantOption,
+    value: string | number,
+  ) => {
     const newOptions = [...(formData.variants[typeName] || [])];
     newOptions[index] = {
       ...newOptions[index],
-      [field]: value
+      [field]: value,
     };
     setFormData({
       ...formData,
       variants: {
         ...formData.variants,
-        [typeName]: newOptions
-      }
+        [typeName]: newOptions,
+      },
     });
   };
 
@@ -247,7 +267,9 @@ export default function ProductsClient({
         return;
       }
       if (!formData.description || formData.description.trim().length < 10) {
-        toast.error("Description is required and must be at least 10 characters");
+        toast.error(
+          "Description is required and must be at least 10 characters",
+        );
         return;
       }
       if (!formData.category) {
@@ -255,20 +277,24 @@ export default function ProductsClient({
         return;
       }
       // Validate price
-      if (formData.price === undefined || formData.price === null || formData.price < 0) {
+      if (
+        formData.price === undefined ||
+        formData.price === null ||
+        formData.price < 0
+      ) {
         toast.error("Price is required and must be 0 or greater");
         return;
       }
       // Slug is auto-generated by backend if not provided
-      
+
       // Filter out empty images - backend will use first image as main image
       const allImages = formData.images.filter((img) => img.trim() !== "");
-      
+
       if (allImages.length === 0) {
         toast.error("At least one product image is required");
         return;
       }
-      
+
       const productData = {
         ...formData,
         slug: formData.slug.trim() || undefined, // Only send if provided, backend will auto-generate
@@ -278,13 +304,22 @@ export default function ProductsClient({
         images: allImages,
         stock: parseFloat(formData.stock.toString()) || 0,
         trackInventory: formData.trackInventory,
-        lowStockThreshold: parseFloat(formData.lowStockThreshold.toString()) || 10,
+        lowStockThreshold:
+          parseFloat(formData.lowStockThreshold.toString()) || 10,
         isActive: formData.isActive,
         featured: formData.featured,
         barcode: formData.barcode.trim() || undefined,
         tags: formData.tags.filter((tag) => tag.trim() !== ""),
-        relatedProducts: formData.relatedProducts.filter((id) => id.trim() !== ""),
-        variants: Object.keys(formData.variants).length > 0 ? convertVariantsToBackend(formData.variants) as unknown as Record<string, any[]> : undefined,
+        relatedProducts: formData.relatedProducts.filter(
+          (id) => id.trim() !== "",
+        ),
+        variants:
+          Object.keys(formData.variants).length > 0
+            ? (convertVariantsToBackend(formData.variants) as unknown as Record<
+                string,
+                any[]
+              >)
+            : undefined,
         description: formData.description.trim(), // Ensure description is trimmed
       };
 
@@ -315,33 +350,42 @@ export default function ProductsClient({
     } catch (error: any) {
       console.error("Error saving product:", error);
       console.error("Error response:", error.response?.data);
-      
+
       // Extract error message from various possible locations
       let errorMessage = "Failed to save product";
-      
+
       if (error.response?.data) {
         const data = error.response.data;
-        
+
         // Check for validation errors array (from Joi validation)
-        if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-          errorMessage = data.errors.map((e: any) => {
-            const field = e.field || 'field';
-            const msg = e.message || 'invalid';
-            return `${field}: ${msg}`;
-          }).join(', ');
-        } 
+        if (
+          data.errors &&
+          Array.isArray(data.errors) &&
+          data.errors.length > 0
+        ) {
+          errorMessage = data.errors
+            .map((e: any) => {
+              const field = e.field || "field";
+              const msg = e.message || "invalid";
+              return `${field}: ${msg}`;
+            })
+            .join(", ");
+        }
         // Check for single error message
         else if (data.message) {
           errorMessage = data.message;
-        } 
+        }
         // Check for error object
         else if (data.error) {
-          errorMessage = typeof data.error === 'string' ? data.error : data.error.message || 'Validation error';
+          errorMessage =
+            typeof data.error === "string"
+              ? data.error
+              : data.error.message || "Validation error";
         }
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage);
     }
   };
@@ -352,57 +396,58 @@ export default function ProductsClient({
       typeof product.category === "object"
         ? (product.category as any)._id || (product.category as any).id
         : product.category;
-    
+
     // Format image URLs for display (they come as paths from backend, need full URLs for preview)
     const formatImageForDisplay = (imgPath: string | undefined): string => {
-      if (!imgPath) return '';
+      if (!imgPath) return "";
       // If already a full URL, return as is
-      if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+      if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
         return imgPath;
       }
       // If it's a path, format it
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const BACKEND_BASE_URL = API_BASE_URL.replace('/api', '');
-      return imgPath.startsWith('/') 
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const BACKEND_BASE_URL = API_BASE_URL.replace("/api", "");
+      return imgPath.startsWith("/")
         ? `${BACKEND_BASE_URL}${imgPath}`
         : `${BACKEND_BASE_URL}/${imgPath}`;
     };
-    
+
     // Helper to normalize image paths for comparison (remove domain, ensure leading slash)
     const normalizeImagePath = (imgPath: string | undefined): string => {
-      if (!imgPath) return '';
+      if (!imgPath) return "";
       // Remove protocol and domain
-      let normalized = imgPath.replace(/^https?:\/\/[^/]+/, '');
+      let normalized = imgPath.replace(/^https?:\/\/[^/]+/, "");
       // Ensure leading slash
-      if (!normalized.startsWith('/')) {
-        normalized = '/' + normalized;
+      if (!normalized.startsWith("/")) {
+        normalized = "/" + normalized;
       }
       return normalized;
     };
-    
+
     // Combine main image with images array if main image exists and isn't in array
     // Normalize paths to avoid duplicates
     const allProductImages = [...(product.images || [])];
     const mainImagePath = normalizeImagePath(product.image);
-    
+
     // Check if main image is already in the images array (using normalized paths)
-    const mainImageInArray = mainImagePath && allProductImages.some(img => 
-      normalizeImagePath(img) === mainImagePath
-    );
-    
+    const mainImageInArray =
+      mainImagePath &&
+      allProductImages.some((img) => normalizeImagePath(img) === mainImagePath);
+
     // Only add main image if it's not already in the array
     // Use the normalized path (without domain) for consistency
     if (mainImagePath && !mainImageInArray) {
       allProductImages.unshift(mainImagePath);
     }
-    
+
     setFormData({
       name: product.name,
       slug: product.slug,
       price: product.price,
       oldPrice: product.oldPrice?.toString() || "",
       // Store the path (not full URL) for saving, but display will use full URL
-      images: allProductImages.map(img => normalizeImagePath(img)),
+      images: allProductImages.map((img) => normalizeImagePath(img)),
       category: categoryId || "",
       description: product.description || "",
       shortDescription: product.shortDescription || "",
@@ -414,9 +459,10 @@ export default function ProductsClient({
       featured: (product as any).featured ?? false,
       barcode: (product as any).barcode || "",
       tags: product.tags || [],
-      relatedProducts: ((product as any).relatedProducts as any[])?.map((p: any) => 
-        typeof p === 'string' ? p : ((p as any)._id || (p as any).id || '')
-      ) || [],
+      relatedProducts:
+        ((product as any).relatedProducts as any[])?.map((p: any) =>
+          typeof p === "string" ? p : (p as any)._id || (p as any).id || "",
+        ) || [],
       variants: convertVariantsFromBackend((product as any).variants),
     });
     setIsModalOpen(true);
@@ -481,20 +527,24 @@ export default function ProductsClient({
 
   const handleRelatedProductChange = (productId: string) => {
     if (!productId) return;
-    
+
     const productIdStr = productId.trim();
     // Don't allow adding the current product being edited
-    if (editingProduct && (productIdStr === editingProduct._id || productIdStr === editingProduct.id)) {
+    if (
+      editingProduct &&
+      (productIdStr === editingProduct._id ||
+        productIdStr === editingProduct.id)
+    ) {
       toast.error("Cannot add the same product as related product");
       return;
     }
-    
+
     // Check if already added
     if (formData.relatedProducts.includes(productIdStr)) {
       toast.error("Product already added");
       return;
     }
-    
+
     setFormData({
       ...formData,
       relatedProducts: [...formData.relatedProducts, productIdStr],
@@ -520,22 +570,23 @@ export default function ProductsClient({
 
   // Format image URL for display
   const formatImageUrl = (imgPath: string | undefined): string => {
-    if (!imgPath) return '';
+    if (!imgPath) return "";
     // If already a full URL, return as is
-    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+    if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
       return imgPath;
     }
     // If it's a path, format it
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    const BACKEND_BASE_URL = API_BASE_URL.replace('/api', '');
-    return imgPath.startsWith('/') 
+    const API_BASE_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+    const BACKEND_BASE_URL = API_BASE_URL.replace("/api", "");
+    return imgPath.startsWith("/")
       ? `${BACKEND_BASE_URL}${imgPath}`
       : `${BACKEND_BASE_URL}/${imgPath}`;
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
         <button
           onClick={() => {
@@ -588,9 +639,10 @@ export default function ProductsClient({
                           const target = e.target as HTMLImageElement;
                           const parent = target.parentElement;
                           if (parent) {
-                            const placeholder = document.createElement('div');
-                            placeholder.className = 'h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400 border border-gray-300';
-                            placeholder.textContent = 'No Image';
+                            const placeholder = document.createElement("div");
+                            placeholder.className =
+                              "h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-400 border border-gray-300";
+                            placeholder.textContent = "No Image";
                             parent.replaceChild(placeholder, target);
                           }
                         }}
@@ -647,8 +699,8 @@ export default function ProductsClient({
                   colSpan={6}
                   className="px-6 py-4 text-center text-sm text-gray-500"
                 >
-                  No products found. Click &quot;Add Product&quot; to create your first
-                  product.
+                  No products found. Click &quot;Add Product&quot; to create
+                  your first product.
                 </td>
               </tr>
             )}
@@ -657,7 +709,7 @@ export default function ProductsClient({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center space-x-2">
+        <div className="flex justify-center space-x-2 mt-4">
           <button
             onClick={() => {
               const newPage = Math.max(1, page - 1);
@@ -690,7 +742,7 @@ export default function ProductsClient({
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 !m-0">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4 mb-4">
               <h2 className="text-xl font-semibold">
                 {editingProduct ? "Edit Product" : "Add Product"}
               </h2>
@@ -727,7 +779,8 @@ export default function ProductsClient({
                     Slug
                   </label>
                   <p className="text-xs text-gray-500 mb-2">
-                    URL-friendly identifier (auto-generated from name if not provided)
+                    URL-friendly identifier (auto-generated from name if not
+                    provided)
                   </p>
                   <input
                     type="text"
@@ -744,11 +797,14 @@ export default function ProductsClient({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {Object.keys(formData.variants).length > 0 ? "Base Price *" : "Price *"}
+                    {Object.keys(formData.variants).length > 0
+                      ? "Base Price *"
+                      : "Price *"}
                   </label>
                   {Object.keys(formData.variants).length > 0 && (
                     <p className="text-xs text-gray-500 mb-2">
-                      Base price for all variants. Variant prices = Base Price + Price Modifier
+                      Base price for all variants. Variant prices = Base Price +
+                      Price Modifier
                     </p>
                   )}
                   <input
@@ -808,7 +864,8 @@ export default function ProductsClient({
                   Product Images *
                 </label>
                 <p className="text-xs text-gray-500 mb-2">
-                  Upload product images. The first image will be used as the main product image.
+                  Upload product images. The first image will be used as the
+                  main product image.
                 </p>
                 <ImageUpload
                   multiple
@@ -828,7 +885,7 @@ export default function ProductsClient({
                     <div className="grid grid-cols-4 gap-3">
                       {formData.images.map((img, idx) => {
                         const imageUrl = formatImageUrl(img);
-                        
+
                         return (
                           <div key={idx} className="relative group">
                             <img
@@ -838,7 +895,8 @@ export default function ProductsClient({
                               onError={(e) => {
                                 // Fallback if image fails to load
                                 const target = e.target as HTMLImageElement;
-                                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect width="100" height="100" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
+                                target.src =
+                                  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect width="100" height="100" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
                               }}
                             />
                             <button
@@ -879,7 +937,8 @@ export default function ProductsClient({
                   Description * (min 10 characters)
                 </label>
                 <p className="text-xs text-gray-500 mb-2">
-                  Provide a detailed description of the product (at least 10 characters)
+                  Provide a detailed description of the product (at least 10
+                  characters)
                 </p>
                 <textarea
                   required
@@ -922,7 +981,10 @@ export default function ProductsClient({
                     type="text"
                     value={formData.barcode}
                     onChange={(e) =>
-                      setFormData({ ...formData, barcode: e.target.value.toUpperCase() })
+                      setFormData({
+                        ...formData,
+                        barcode: e.target.value.toUpperCase(),
+                      })
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     placeholder="Auto-generated if empty"
@@ -931,7 +993,9 @@ export default function ProductsClient({
               </div>
 
               <div className="border-t pt-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Inventory Management</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Inventory Management
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -982,14 +1046,18 @@ export default function ProductsClient({
                       }
                       className="mr-2"
                     />
-                    <span className="text-sm text-gray-700">Track Inventory</span>
+                    <span className="text-sm text-gray-700">
+                      Track Inventory
+                    </span>
                   </label>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Product Variants</h3>
+                <div className="flex justify-between items-center mb-4 mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Product Variants
+                  </h3>
                   <button
                     type="button"
                     onClick={addVariantType}
@@ -999,149 +1067,229 @@ export default function ProductsClient({
                   </button>
                 </div>
                 <p className="text-sm text-gray-500 mb-4">
-                  Add variant types (e.g., Size, Color) and their options. Each option can have different prices and stock levels.
+                  Add variant types (e.g., Size, Color) and their options. Each
+                  option can have different prices and stock levels.
                 </p>
 
                 {Object.keys(formData.variants).length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">No variants added. Click &quot;Add Variant Type&quot; to start.</p>
+                  <p className="text-sm text-gray-400 italic">
+                    No variants added. Click &quot;Add Variant Type&quot; to
+                    start.
+                  </p>
                 ) : (
                   <div className="space-y-6">
-                    {Object.entries(formData.variants).map(([variantType, options]: [string, VariantOption[]]) => (
-                      <div key={variantType} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex justify-between items-center mb-3">
-                          <h4 className="text-md font-semibold text-gray-800 capitalize">{variantType}</h4>
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => addVariantOption(variantType)}
-                              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
-                            >
-                              + Add Option
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => removeVariantType(variantType)}
-                              className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                            >
-                              Remove Type
-                            </button>
+                    {Object.entries(formData.variants).map(
+                      ([variantType, options]: [string, VariantOption[]]) => (
+                        <div
+                          key={variantType}
+                          className="border border-gray-200 rounded-lg p-4"
+                        >
+                          <div className="flex justify-between items-center mb-4 mb-3">
+                            <h4 className="text-md font-semibold text-gray-800 capitalize">
+                              {variantType}
+                            </h4>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => addVariantOption(variantType)}
+                                className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                              >
+                                + Add Option
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeVariantType(variantType)}
+                                className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                              >
+                                Remove Type
+                              </button>
+                            </div>
                           </div>
-                        </div>
 
-                        {options.length === 0 ? (
-                          <p className="text-sm text-gray-400 italic">No options added for this variant type.</p>
-                        ) : (
-                          <div className="space-y-3">
-                            {options.map((option: VariantOption, index: number) => (
-                              <div key={index} className="bg-gray-50 p-3 rounded border border-gray-200">
-                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                      Value * (e.g., Small, Red)
-                                    </label>
-                                    <input
-                                      type="text"
-                                      required
-                                      value={option.value || ""}
-                                      onChange={(e) => updateVariantOption(variantType, index, 'value', e.target.value)}
-                                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                      placeholder="e.g., Small"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                      Price Modifier (Rs)
-                                    </label>
-                                    <input
-                                      type="number"
-                                      step="0.01"
-                                      value={option.priceModifier || 0}
-                                      onChange={(e) => updateVariantOption(variantType, index, 'priceModifier', parseFloat(e.target.value) || 0)}
-                                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                      placeholder="0.00"
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                      Price modifier: Rs {(formData.price || 0).toFixed(2)} + {option.priceModifier >= 0 ? '+' : ''}{option.priceModifier.toFixed(2)} = <strong>Rs {((formData.price || 0) + (option.priceModifier || 0)).toFixed(2)}</strong>
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                      Stock Quantity
-                                    </label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={option.stock || 0}
-                                      onChange={(e) => updateVariantOption(variantType, index, 'stock', parseFloat(e.target.value) || 0)}
-                                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                      placeholder="0"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                      SKU (optional)
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={option.sku || ""}
-                                      onChange={(e) => updateVariantOption(variantType, index, 'sku', e.target.value)}
-                                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                      placeholder="Variant SKU"
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                      Barcode (optional, auto-generated if empty)
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={option.barcode || ""}
-                                      onChange={(e) => updateVariantOption(variantType, index, 'barcode', e.target.value.toUpperCase())}
-                                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                      placeholder="Auto-generated"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                      Variant Image URL (optional)
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={option.image || ""}
-                                      onChange={(e) => updateVariantOption(variantType, index, 'image', e.target.value)}
-                                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                      placeholder="Image URL or path"
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="flex justify-end">
-                                  <button
-                                    type="button"
-                                    onClick={() => removeVariantOption(variantType, index)}
-                                    className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                          {options.length === 0 ? (
+                            <p className="text-sm text-gray-400 italic">
+                              No options added for this variant type.
+                            </p>
+                          ) : (
+                            <div className="space-y-3">
+                              {options.map(
+                                (option: VariantOption, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="bg-gray-50 p-3 rounded border border-gray-200"
                                   >
-                                    Remove Option
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                                    <div className="grid grid-cols-2 gap-3 mb-3">
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                          Value * (e.g., Small, Red)
+                                        </label>
+                                        <input
+                                          type="text"
+                                          required
+                                          value={option.value || ""}
+                                          onChange={(e) =>
+                                            updateVariantOption(
+                                              variantType,
+                                              index,
+                                              "value",
+                                              e.target.value,
+                                            )
+                                          }
+                                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                          placeholder="e.g., Small"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                          Price Modifier (Rs)
+                                        </label>
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          value={option.priceModifier || 0}
+                                          onChange={(e) =>
+                                            updateVariantOption(
+                                              variantType,
+                                              index,
+                                              "priceModifier",
+                                              parseFloat(e.target.value) || 0,
+                                            )
+                                          }
+                                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                          placeholder="0.00"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          Price modifier: Rs{" "}
+                                          {(formData.price || 0).toFixed(2)} +{" "}
+                                          {option.priceModifier >= 0 ? "+" : ""}
+                                          {option.priceModifier.toFixed(
+                                            2,
+                                          )} ={" "}
+                                          <strong>
+                                            Rs{" "}
+                                            {(
+                                              (formData.price || 0) +
+                                              (option.priceModifier || 0)
+                                            ).toFixed(2)}
+                                          </strong>
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3 mb-3">
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                          Stock Quantity
+                                        </label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          value={option.stock || 0}
+                                          onChange={(e) =>
+                                            updateVariantOption(
+                                              variantType,
+                                              index,
+                                              "stock",
+                                              parseFloat(e.target.value) || 0,
+                                            )
+                                          }
+                                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                          placeholder="0"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                          SKU (optional)
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={option.sku || ""}
+                                          onChange={(e) =>
+                                            updateVariantOption(
+                                              variantType,
+                                              index,
+                                              "sku",
+                                              e.target.value,
+                                            )
+                                          }
+                                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                          placeholder="Variant SKU"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3 mb-3">
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                          Barcode (optional, auto-generated if
+                                          empty)
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={option.barcode || ""}
+                                          onChange={(e) =>
+                                            updateVariantOption(
+                                              variantType,
+                                              index,
+                                              "barcode",
+                                              e.target.value.toUpperCase(),
+                                            )
+                                          }
+                                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                          placeholder="Auto-generated"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                          Variant Image URL (optional)
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={option.image || ""}
+                                          onChange={(e) =>
+                                            updateVariantOption(
+                                              variantType,
+                                              index,
+                                              "image",
+                                              e.target.value,
+                                            )
+                                          }
+                                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                          placeholder="Image URL or path"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          removeVariantOption(
+                                            variantType,
+                                            index,
+                                          )
+                                        }
+                                        className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                                      >
+                                        Remove Option
+                                      </button>
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ),
+                    )}
                   </div>
                 )}
               </div>
 
               <div className="border-t pt-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Product Status</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Product Status
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="flex items-center">
@@ -1156,7 +1304,9 @@ export default function ProductsClient({
                         }
                         className="mr-2"
                       />
-                      <span className="text-sm text-gray-700">Active (visible to customers)</span>
+                      <span className="text-sm text-gray-700">
+                        Active (visible to customers)
+                      </span>
                     </label>
                   </div>
                   <div>
@@ -1172,7 +1322,9 @@ export default function ProductsClient({
                         }
                         className="mr-2"
                       />
-                      <span className="text-sm text-gray-700">Featured Product</span>
+                      <span className="text-sm text-gray-700">
+                        Featured Product
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -1243,34 +1395,48 @@ export default function ProductsClient({
                     disabled={loadingProducts}
                   >
                     <option value="">
-                      {loadingProducts ? "Loading products..." : "Select a product to add..."}
+                      {loadingProducts
+                        ? "Loading products..."
+                        : "Select a product to add..."}
                     </option>
                     {!loadingProducts && allProducts.length === 0 && (
-                      <option value="" disabled>No products available</option>
+                      <option value="" disabled>
+                        No products available
+                      </option>
                     )}
-                    {!loadingProducts && allProducts
-                      .filter((p) => {
-                        const productId = p._id || p.id || "";
-                        // Don't show current product or already added products
-                        if (editingProduct && (productId === editingProduct._id || productId === editingProduct.id)) {
-                          return false;
-                        }
-                        return !formData.relatedProducts.includes(productId);
-                      })
-                      .map((product) => (
-                        <option key={product._id || product.id} value={product._id || product.id}>
-                          {product.name} (Rs {product.price})
-                        </option>
-                      ))}
+                    {!loadingProducts &&
+                      allProducts
+                        .filter((p) => {
+                          const productId = p._id || p.id || "";
+                          // Don't show current product or already added products
+                          if (
+                            editingProduct &&
+                            (productId === editingProduct._id ||
+                              productId === editingProduct.id)
+                          ) {
+                            return false;
+                          }
+                          return !formData.relatedProducts.includes(productId);
+                        })
+                        .map((product) => (
+                          <option
+                            key={product._id || product.id}
+                            value={product._id || product.id}
+                          >
+                            {product.name} (Rs {product.price})
+                          </option>
+                        ))}
                   </select>
                 </div>
                 {formData.relatedProducts.length > 0 && (
                   <div className="mt-2">
-                    <p className="text-sm text-gray-600 mb-2">Selected Related Products:</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Selected Related Products:
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {formData.relatedProducts.map((productId, idx) => {
                         const product = allProducts.find(
-                          (p) => (p._id || p.id) === productId
+                          (p) => (p._id || p.id) === productId,
                         );
                         return (
                           <span

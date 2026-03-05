@@ -17,15 +17,17 @@ interface OrdersClientProps {
 }
 
 // Helper function to get valid next statuses based on current status
-const getValidNextStatuses = (currentStatus: Order['status']): Order['status'][] => {
-  const validTransitions: Record<Order['status'], Order['status'][]> = {
-    'pending': ['confirmed', 'cancelled'],
-    'confirmed': ['shipped', 'cancelled'],
-    'shipped': ['delivered', 'cancelled'],
-    'delivered': [], // Cannot transition from delivered
-    'cancelled': [] // Cannot transition from cancelled
+const getValidNextStatuses = (
+  currentStatus: Order["status"],
+): Order["status"][] => {
+  const validTransitions: Record<Order["status"], Order["status"][]> = {
+    pending: ["confirmed", "cancelled"],
+    confirmed: ["shipped", "cancelled"],
+    shipped: ["delivered", "cancelled"],
+    delivered: [], // Cannot transition from delivered
+    cancelled: [], // Cannot transition from cancelled
   };
-  
+
   return validTransitions[currentStatus] || [];
 };
 
@@ -60,39 +62,39 @@ export default function OrdersClient({
   ) => {
     try {
       await ordersApi.updateStatus(orderId, newStatus);
-      
+
       // Update the order in the local state immediately
-      setOrders(prevOrders => 
-        prevOrders.map(order => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => {
           const orderIdMatch = order._id === orderId || order.id === orderId;
           if (orderIdMatch) {
             return { ...order, status: newStatus };
           }
           return order;
-        })
+        }),
       );
-      
+
       // Update selected order if it's the one being updated
       if (selectedOrder?._id === orderId || selectedOrder?.id === orderId) {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
       }
-      
+
       toast.success("Order status updated successfully!");
-      
+
       // Refresh in the background to ensure data consistency
       refreshOrders();
     } catch (error: any) {
       console.error("Error updating order status:", error);
-      
+
       // Extract error message properly
       let errorMessage = "Failed to update order status";
       if (error.response?.data) {
         // Check for message first (preferred)
         if (error.response.data.message) {
           errorMessage = error.response.data.message;
-        } 
+        }
         // If error is a string, use it
-        else if (typeof error.response.data.error === 'string') {
+        else if (typeof error.response.data.error === "string") {
           errorMessage = error.response.data.error;
         }
         // If error is an object, try to get its message
@@ -102,7 +104,7 @@ export default function OrdersClient({
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage);
     }
   };
@@ -116,8 +118,8 @@ export default function OrdersClient({
   };
 
   const formatCurrency = (amount: number | undefined) => {
-    if (amount === undefined || amount === null) return 'Rs 0.00';
-    return `Rs ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+    if (amount === undefined || amount === null) return "Rs 0.00";
+    return `Rs ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -135,7 +137,7 @@ export default function OrdersClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-900">Orders</h1>
         <select
           value={statusFilter}
@@ -227,7 +229,7 @@ export default function OrdersClient({
       </div>
 
       {initialPagination.pages > 1 && (
-        <div className="flex justify-center space-x-2">
+        <div className="flex justify-center space-x-2 mt-4">
           <button
             onClick={() => {
               const newPage = Math.max(1, page - 1);
@@ -266,7 +268,7 @@ export default function OrdersClient({
       {selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 !m-0">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4 mb-4">
               <h2 className="text-xl font-semibold">Order Details</h2>
               <button
                 onClick={() => setSelectedOrder(null)}
@@ -279,22 +281,51 @@ export default function OrdersClient({
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold mb-2">Order Information</h3>
-                <p>Order ID: {(selectedOrder._id || selectedOrder.id)?.toString().substring(0, 8)}</p>
-                <p>Status: <span className={`px-2 py-1 rounded text-xs ${getStatusColor(selectedOrder.status)}`}>{selectedOrder.status}</span></p>
-                <p>Date: {selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString() : '-'}</p>
+                <p>
+                  Order ID:{" "}
+                  {(selectedOrder._id || selectedOrder.id)
+                    ?.toString()
+                    .substring(0, 8)}
+                </p>
+                <p>
+                  Status:{" "}
+                  <span
+                    className={`px-2 py-1 rounded text-xs ${getStatusColor(selectedOrder.status)}`}
+                  >
+                    {selectedOrder.status}
+                  </span>
+                </p>
+                <p>
+                  Date:{" "}
+                  {selectedOrder.createdAt
+                    ? new Date(selectedOrder.createdAt).toLocaleDateString()
+                    : "-"}
+                </p>
                 {selectedOrder.discountCode && (
                   <div className="mt-2 p-2 bg-gray-50 rounded">
                     <p className="font-medium">Discount Code Applied:</p>
-                    <p>Code: <strong>{selectedOrder.discountCode.code}</strong></p>
-                    <p>Type: {selectedOrder.discountCode.type === 'percentage' ? 'Percentage' : 'Fixed Amount'}</p>
-                    <p>Value: {selectedOrder.discountCode.type === 'percentage' 
-                      ? `${selectedOrder.discountCode.value}%` 
-                      : `Rs ${selectedOrder.discountCode.value}`}</p>
-                    {selectedOrder.discountAmount && selectedOrder.discountAmount > 0 && (
-                      <p className="text-green-600 font-medium">
-                        Discount Applied: -{formatCurrency(selectedOrder.discountAmount)}
-                      </p>
-                    )}
+                    <p>
+                      Code: <strong>{selectedOrder.discountCode.code}</strong>
+                    </p>
+                    <p>
+                      Type:{" "}
+                      {selectedOrder.discountCode.type === "percentage"
+                        ? "Percentage"
+                        : "Fixed Amount"}
+                    </p>
+                    <p>
+                      Value:{" "}
+                      {selectedOrder.discountCode.type === "percentage"
+                        ? `${selectedOrder.discountCode.value}%`
+                        : `Rs ${selectedOrder.discountCode.value}`}
+                    </p>
+                    {selectedOrder.discountAmount &&
+                      selectedOrder.discountAmount > 0 && (
+                        <p className="text-green-600 font-medium">
+                          Discount Applied: -
+                          {formatCurrency(selectedOrder.discountAmount)}
+                        </p>
+                      )}
                   </div>
                 )}
               </div>
@@ -306,30 +337,43 @@ export default function OrdersClient({
                   const billingAddr = selectedOrder.billingAddress;
                   const shippingAddr = selectedOrder.shippingAddress;
                   const user = selectedOrder.user;
-                  
+
                   // Check if billingAddress has address fields, if not use shippingAddress
-                  const hasBillingAddress = billingAddr && (billingAddr.street || billingAddr.city);
-                  const displayAddress = hasBillingAddress ? billingAddr : (shippingAddr ? {
-                    firstName: shippingAddr.firstName || user?.name?.split(' ')[0] || '',
-                    lastName: shippingAddr.lastName || user?.name?.split(' ').slice(1).join(' ') || '',
-                    street: shippingAddr.street || '',
-                    city: shippingAddr.city || '',
-                    state: shippingAddr.state || '',
-                    zipCode: shippingAddr.zipCode || '',
-                    country: shippingAddr.country || '',
-                    phone: shippingAddr.phone || '',
-                    email: shippingAddr.email || user?.email || '',
-                  } : null);
-                  
+                  const hasBillingAddress =
+                    billingAddr && (billingAddr.street || billingAddr.city);
+                  const displayAddress = hasBillingAddress
+                    ? billingAddr
+                    : shippingAddr
+                      ? {
+                          firstName:
+                            shippingAddr.firstName ||
+                            user?.name?.split(" ")[0] ||
+                            "",
+                          lastName:
+                            shippingAddr.lastName ||
+                            user?.name?.split(" ").slice(1).join(" ") ||
+                            "",
+                          street: shippingAddr.street || "",
+                          city: shippingAddr.city || "",
+                          state: shippingAddr.state || "",
+                          zipCode: shippingAddr.zipCode || "",
+                          country: shippingAddr.country || "",
+                          phone: shippingAddr.phone || "",
+                          email: shippingAddr.email || user?.email || "",
+                        }
+                      : null;
+
                   if (displayAddress) {
                     return (
                       <>
-                        {(displayAddress.firstName || displayAddress.lastName) ? (
+                        {displayAddress.firstName || displayAddress.lastName ? (
                           <p className="font-medium">
                             {displayAddress.firstName} {displayAddress.lastName}
                           </p>
                         ) : (
-                          <p className="font-medium">{selectedOrder.customerName || user?.name}</p>
+                          <p className="font-medium">
+                            {selectedOrder.customerName || user?.name}
+                          </p>
                         )}
                         {displayAddress.street && (
                           <p>
@@ -398,59 +442,70 @@ export default function OrdersClient({
                     ))}
                   </tbody>
                   <tfoot>
-                    {selectedOrder.subtotal && selectedOrder.subtotal !== selectedOrder.total && (
-                      <tr>
-                        <td colSpan={3} className="text-right py-2">
-                          Subtotal:
-                        </td>
-                        <td className="text-right py-2">
-                          {formatCurrency(selectedOrder.subtotal)}
-                        </td>
-                      </tr>
-                    )}
-                    {selectedOrder.discountCode && selectedOrder.discountAmount && selectedOrder.discountAmount > 0 && (
-                      <>
+                    {selectedOrder.subtotal &&
+                      selectedOrder.subtotal !== selectedOrder.total && (
                         <tr>
                           <td colSpan={3} className="text-right py-2">
-                            Discount Code:
+                            Subtotal:
                           </td>
                           <td className="text-right py-2">
-                            <span className="font-medium">{selectedOrder.discountCode.code}</span>
-                            {selectedOrder.discountCode.type && (
-                              <span className="text-sm text-gray-500 ml-2">
-                                ({selectedOrder.discountCode.type === 'percentage' 
-                                  ? `${selectedOrder.discountCode.value}%` 
-                                  : `Rs ${selectedOrder.discountCode.value}`})
-                              </span>
-                            )}
+                            {formatCurrency(selectedOrder.subtotal)}
                           </td>
                         </tr>
+                      )}
+                    {selectedOrder.discountCode &&
+                      selectedOrder.discountAmount &&
+                      selectedOrder.discountAmount > 0 && (
+                        <>
+                          <tr>
+                            <td colSpan={3} className="text-right py-2">
+                              Discount Code:
+                            </td>
+                            <td className="text-right py-2">
+                              <span className="font-medium">
+                                {selectedOrder.discountCode.code}
+                              </span>
+                              {selectedOrder.discountCode.type && (
+                                <span className="text-sm text-gray-500 ml-2">
+                                  (
+                                  {selectedOrder.discountCode.type ===
+                                  "percentage"
+                                    ? `${selectedOrder.discountCode.value}%`
+                                    : `Rs ${selectedOrder.discountCode.value}`}
+                                  )
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colSpan={3} className="text-right py-2">
+                              Discount Amount:
+                            </td>
+                            <td className="text-right py-2 text-green-600">
+                              -{formatCurrency(selectedOrder.discountAmount)}
+                            </td>
+                          </tr>
+                        </>
+                      )}
+                    {selectedOrder.deliveryCharges !== undefined &&
+                      selectedOrder.deliveryCharges > 0 && (
                         <tr>
                           <td colSpan={3} className="text-right py-2">
-                            Discount Amount:
+                            Delivery Charges:
                           </td>
-                          <td className="text-right py-2 text-green-600">
-                            -{formatCurrency(selectedOrder.discountAmount)}
+                          <td className="text-right py-2">
+                            {formatCurrency(selectedOrder.deliveryCharges)}
                           </td>
                         </tr>
-                      </>
-                    )}
-                    {selectedOrder.deliveryCharges !== undefined && selectedOrder.deliveryCharges > 0 && (
-                      <tr>
-                        <td colSpan={3} className="text-right py-2">
-                          Delivery Charges:
-                        </td>
-                        <td className="text-right py-2">
-                          {formatCurrency(selectedOrder.deliveryCharges)}
-                        </td>
-                      </tr>
-                    )}
+                      )}
                     <tr>
                       <td colSpan={3} className="text-right font-semibold py-2">
                         Total:
                       </td>
                       <td className="text-right font-semibold py-2">
-                        {formatCurrency(selectedOrder.total || selectedOrder.totalAmount)}
+                        {formatCurrency(
+                          selectedOrder.total || selectedOrder.totalAmount,
+                        )}
                       </td>
                     </tr>
                   </tfoot>
@@ -459,9 +514,11 @@ export default function OrdersClient({
 
               <div>
                 <h3 className="font-semibold mb-2">Shipping Address</h3>
-                {(selectedOrder.shippingAddress.firstName || selectedOrder.shippingAddress.lastName) && (
+                {(selectedOrder.shippingAddress.firstName ||
+                  selectedOrder.shippingAddress.lastName) && (
                   <p className="font-medium">
-                    {selectedOrder.shippingAddress.firstName} {selectedOrder.shippingAddress.lastName}
+                    {selectedOrder.shippingAddress.firstName}{" "}
+                    {selectedOrder.shippingAddress.lastName}
                   </p>
                 )}
                 <p>
@@ -475,12 +532,14 @@ export default function OrdersClient({
                 <p>{selectedOrder.shippingAddress.country}</p>
                 {selectedOrder.shippingAddress.phone && (
                   <p className="mt-1">
-                    <strong>Phone:</strong> {selectedOrder.shippingAddress.phone}
+                    <strong>Phone:</strong>{" "}
+                    {selectedOrder.shippingAddress.phone}
                   </p>
                 )}
                 {selectedOrder.shippingAddress.email && (
                   <p>
-                    <strong>Email:</strong> {selectedOrder.shippingAddress.email}
+                    <strong>Email:</strong>{" "}
+                    {selectedOrder.shippingAddress.email}
                   </p>
                 )}
               </div>
@@ -498,7 +557,9 @@ export default function OrdersClient({
                   className="px-4 py-2 border rounded"
                 >
                   <option value={selectedOrder.status} disabled>
-                    Current: {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                    Current:{" "}
+                    {selectedOrder.status.charAt(0).toUpperCase() +
+                      selectedOrder.status.slice(1)}
                   </option>
                   {getValidNextStatuses(selectedOrder.status).map((status) => (
                     <option key={status} value={status}>

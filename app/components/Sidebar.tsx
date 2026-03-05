@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   FaChartLine,
@@ -39,8 +40,17 @@ export default function Sidebar() {
   return (
     <aside className="h-screen bg-custom-gradient-blue text-white w-72 flex flex-col">
       {/* Logo */}
-      <div className="flex items-center justify-center h-16 border-b border-white/10">
-        <span className="font-bold text-xl">Shahbaz Store</span>
+      <div className="flex items-center justify-center h-20 px-4 py-3 border-b border-white/10">
+        <Link href="/dashboard" className="block">
+          <Image
+            src="/assets/images/image.png"
+            alt="Shahbaz Store"
+            width={80}
+            height={40}
+            className="object-contain"
+            style={{ borderRadius: "8px" }}
+          />
+        </Link>
       </div>
 
       {/* Navigation */}

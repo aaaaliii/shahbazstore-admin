@@ -7,6 +7,7 @@ import InputField from "../components/shared/InputField";
 import WelcomeHeader from "../components/shared/WelcomeHeader";
 import { useAuth } from "../../lib/auth/auth.context";
 import { toast } from "sonner";
+import { PageSpinner } from "../components/Spinner";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -66,9 +67,7 @@ export default function LoginPage() {
           backgroundPosition: "center",
         }}
       >
-        <div className="text-center text-white">
-          <p className="text-lg">Loading...</p>
-        </div>
+        <PageSpinner fullScreen className="text-white" />
       </main>
     );
   }

@@ -46,7 +46,7 @@ const ChatLogPage = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-900">Chat Logs</h1>
       </div>
 

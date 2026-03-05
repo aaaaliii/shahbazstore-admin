@@ -4,19 +4,25 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { DashboardStats, statsApi } from "../../../lib/api/stats.api";
 import { toast } from "sonner";
+import { PageSpinner } from "../../components/Spinner";
 
 interface DashboardClientProps {
   initialStats?: DashboardStats | null;
   error?: string | null;
 }
 
-export default function DashboardClient({ initialStats, error: initialError }: DashboardClientProps = {}) {
-  const [stats, setStats] = useState<DashboardStats | null>(initialStats || null);
+export default function DashboardClient({
+  initialStats,
+  error: initialError,
+}: DashboardClientProps = {}) {
+  const [stats, setStats] = useState<DashboardStats | null>(
+    initialStats || null,
+  );
   const [loading, setLoading] = useState(!initialStats);
   const [error, setError] = useState<string | null>(initialError || null);
 
   const formatCurrency = (amount: number) => {
-    return `Rs ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+    return `Rs ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
   };
 
   const fetchStats = async (showToast = false) => {
@@ -29,7 +35,10 @@ export default function DashboardClient({ initialStats, error: initialError }: D
         toast.success("Dashboard data refreshed");
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || "Failed to load dashboard data";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to load dashboard data";
       setError(errorMessage);
       if (showToast) {
         toast.error(errorMessage);
@@ -45,11 +54,7 @@ export default function DashboardClient({ initialStats, error: initialError }: D
   }, []);
 
   if (loading && !stats) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading dashboard...</div>
-      </div>
-    );
+    return <PageSpinner fullScreen />;
   }
 
   if (error && !stats) {
@@ -78,15 +83,15 @@ export default function DashboardClient({ initialStats, error: initialError }: D
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <button
           onClick={() => fetchStats(true)}
           disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-colors"
+          className="px-4 py-2 bg-custom-blue text-white rounded-md hover:bg-custom-blue-light disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm transition-colors"
         >
           <svg
-            className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+            className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -113,7 +118,9 @@ export default function DashboardClient({ initialStats, error: initialError }: D
         <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Products</p>
+              <p className="text-sm font-medium text-gray-600">
+                Total Products
+              </p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
                 {stats.totalProducts || 0}
               </p>
@@ -147,7 +154,8 @@ export default function DashboardClient({ initialStats, error: initialError }: D
                 {stats.totalOrders || 0}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                {stats.pendingOrders || 0} pending, {stats.confirmedOrders || 0} confirmed
+                {stats.pendingOrders || 0} pending, {stats.confirmedOrders || 0}{" "}
+                confirmed
               </p>
             </div>
             <div className="p-3 bg-green-100 rounded-full">
@@ -198,13 +206,13 @@ export default function DashboardClient({ initialStats, error: initialError }: D
         <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Low Stock Products</p>
+              <p className="text-sm font-medium text-gray-600">
+                Low Stock Products
+              </p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
                 {stats.lowStockProducts?.length || 0}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Need attention
-              </p>
+              <p className="text-xs text-gray-500 mt-1">Need attention</p>
             </div>
             <div className="p-3 bg-red-100 rounded-full">
               <svg
@@ -228,8 +236,10 @@ export default function DashboardClient({ initialStats, error: initialError }: D
       {/* Low Stock Products Alert */}
       {stats.lowStockProducts && stats.lowStockProducts.length > 0 && (
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
-          <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900">Low Stock Products</h2>
+          <div className="p-6 border-b border-gray-200 flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Low Stock Products
+            </h2>
             <Link
               href="/products"
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
@@ -268,15 +278,23 @@ export default function DashboardClient({ initialStats, error: initialError }: D
                           />
                         )}
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                          <div className="text-sm text-gray-500">{product.slug}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {product.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {product.slug}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm font-semibold ${
-                        product.stock === 0 ? 'text-red-600' : 'text-yellow-600'
-                      }`}>
+                      <span
+                        className={`text-sm font-semibold ${
+                          product.stock === 0
+                            ? "text-red-600"
+                            : "text-yellow-600"
+                        }`}
+                      >
                         {product.stock}
                       </span>
                     </td>
@@ -301,7 +319,7 @@ export default function DashboardClient({ initialStats, error: initialError }: D
 
       {/* Recent Orders */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
           <Link
             href="/orders"
@@ -311,30 +329,30 @@ export default function DashboardClient({ initialStats, error: initialError }: D
           </Link>
         </div>
         <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Order ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Order ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Total
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
               {stats.recentOrders && stats.recentOrders.length > 0 ? (
                 stats.recentOrders.map((order) => (
                   <tr key={order._id || order.id}>
@@ -350,12 +368,12 @@ export default function DashboardClient({ initialStats, error: initialError }: D
                           order.status === "delivered"
                             ? "bg-green-100 text-green-800"
                             : order.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : order.status === "cancelled"
-                            ? "bg-red-100 text-red-800"
-                            : order.status === "confirmed"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : order.status === "cancelled"
+                                ? "bg-red-100 text-red-800"
+                                : order.status === "confirmed"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {order.status}
@@ -381,7 +399,10 @@ export default function DashboardClient({ initialStats, error: initialError }: D
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
                     No recent orders
                   </td>
                 </tr>
@@ -393,4 +414,3 @@ export default function DashboardClient({ initialStats, error: initialError }: D
     </div>
   );
 }
-

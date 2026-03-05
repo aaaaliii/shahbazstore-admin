@@ -23,7 +23,7 @@ export default function ReviewsClient({ initialReviews }: ReviewsClientProps) {
       const reviewsData = await reviewsApi.getAll();
       setReviews(reviewsData.reviews || []);
     } catch (error) {
-      console.error('Error refreshing reviews:', error);
+      console.error("Error refreshing reviews:", error);
     }
   };
 
@@ -44,8 +44,10 @@ export default function ReviewsClient({ initialReviews }: ReviewsClientProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Reviews Management</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Reviews Management
+        </h1>
       </div>
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
@@ -78,7 +80,10 @@ export default function ReviewsClient({ initialReviews }: ReviewsClientProps) {
           <tbody className="bg-white divide-y divide-gray-200">
             {reviews.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td
+                  colSpan={7}
+                  className="px-6 py-4 text-center text-sm text-gray-500"
+                >
                   No reviews yet.
                 </td>
               </tr>
@@ -90,12 +95,17 @@ export default function ReviewsClient({ initialReviews }: ReviewsClientProps) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div>{review.customerName}</div>
-                    <div className="text-xs text-gray-400">{review.customerEmail}</div>
+                    <div className="text-xs text-gray-400">
+                      {review.customerEmail}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {review.rating} ★
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title={review.comment}>
+                  <td
+                    className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate"
+                    title={review.comment}
+                  >
                     {review.comment}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -110,7 +120,9 @@ export default function ReviewsClient({ initialReviews }: ReviewsClientProps) {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : "-"}
+                    {review.createdAt
+                      ? new Date(review.createdAt).toLocaleDateString()
+                      : "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     {review.status === "pending" && (

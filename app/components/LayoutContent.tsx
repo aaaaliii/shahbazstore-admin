@@ -58,7 +58,7 @@ export default function LayoutContent({
       <main className="flex-1 w-full md:ml-72 bg-[#FCFDFF] min-h-screen">
         {/* Mobile hamburger */}
         <div className="md:hidden mb-4 p-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-4">
             <span className="font-bold text-xl">WA-AI</span>
             <button
               className="p-2"
@@ -70,7 +70,9 @@ export default function LayoutContent({
           </div>
         </div>
 
-        <div className="p-6 md:p-8 h-full max-w-7xl mx-auto w-full">{children}</div>
+        <div className="p-6 md:p-8 h-full max-w-7xl mx-auto w-full">
+          {children}
+        </div>
       </main>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ReviewsClient from "./ReviewsClient";
 import { reviewsApi, Review } from "../../../lib/api/reviews.api";
+import { PageSpinner } from "../../components/Spinner";
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -27,11 +28,7 @@ export default function ReviewsPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading reviews...</div>
-      </div>
-    );
+    return <PageSpinner fullScreen />;
   }
 
   return (

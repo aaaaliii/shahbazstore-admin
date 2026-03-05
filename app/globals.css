@@ -9,10 +9,10 @@
   --color-custom-red: #F44A51;
   --color-custom-blue-light: #a91e94;
   --color-primary: #700e77;
-  
+
   --background-image-custom-gradient-red: linear-gradient(270deg, #b824a3 0%, #700e77 100%);
   --background-image-custom-gradient-blue: linear-gradient(90deg, #700e77 0%, #a91e94 100%);
-  
+
   --font-family-open-sans-regular: "Open-Sans-Regular", sans-serif;
   --font-family-open-sans-medium: "Open-Sans-Semi-Bold", sans-serif;
   --font-family-open-sans-bold: "Open-Sans-Bold", sans-serif;
@@ -35,6 +35,10 @@
   transform: translateX(-50%);
   display: flex;
   align-items: center;
+}
+
+.spae-y-6 {
+  margin-bottom: 24px !important;
 }
 
 .header-logo-center img {
@@ -1526,6 +1530,7 @@ body.mmenu-active .sticky-navbar.fixed {
   margin-bottom: 0;
   letter-spacing: 0;
 }
+
 @font-face {
   font-family: Open-Sans-Semi-Bold;
   src: url(../public/font/OpenSans/static/OpenSans-SemiBold.ttf);

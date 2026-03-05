@@ -65,7 +65,7 @@ export default function DiscountCodesClient({
         endDate: formData.endDate || new Date().toISOString().slice(0, 10),
         active: formData.active,
       };
-      
+
       let updatedCode: DiscountCode;
       if (editingCode && editingCode.id) {
         // Validate that id is a valid MongoDB ObjectId format
@@ -75,30 +75,30 @@ export default function DiscountCodesClient({
         }
         updatedCode = await discountCodesApi.update(editingCode.id, payload);
         // Update the code in local state immediately
-        setCodes(prevCodes =>
-          prevCodes.map(c => c.id === editingCode.id ? updatedCode : c)
+        setCodes((prevCodes) =>
+          prevCodes.map((c) => (c.id === editingCode.id ? updatedCode : c)),
         );
         toast.success("Discount code updated!");
       } else {
         updatedCode = await discountCodesApi.create(payload);
         // Add the new code to local state immediately
-        setCodes(prevCodes => [updatedCode, ...prevCodes]);
+        setCodes((prevCodes) => [updatedCode, ...prevCodes]);
         toast.success("Discount code created!");
       }
-      
+
       setIsModalOpen(false);
       resetForm();
       // Refresh in background to ensure consistency
       refreshCodes();
     } catch (err: any) {
       console.error("Error saving discount code:", err);
-      
+
       // Extract error message properly
       let errorMessage = "Failed to save discount code";
       if (err.response?.data) {
         if (err.response.data.message) {
           errorMessage = err.response.data.message;
-        } else if (typeof err.response.data.error === 'string') {
+        } else if (typeof err.response.data.error === "string") {
           errorMessage = err.response.data.error;
         } else if (err.response.data.error?.message) {
           errorMessage = err.response.data.error.message;
@@ -106,7 +106,7 @@ export default function DiscountCodesClient({
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       toast.error(errorMessage);
     }
   };
@@ -128,29 +128,29 @@ export default function DiscountCodesClient({
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this discount code?")) return;
-    
+
     // Validate that id is a valid MongoDB ObjectId format
     if (!id || !/^[0-9a-fA-F]{24}$/.test(id)) {
       toast.error("Invalid discount code ID");
       return;
     }
-    
+
     try {
       await discountCodesApi.delete(id);
       // Remove the code from local state immediately
-      setCodes(prevCodes => prevCodes.filter(c => c.id !== id));
+      setCodes((prevCodes) => prevCodes.filter((c) => c.id !== id));
       toast.success("Discount code deleted!");
       // Refresh in background to ensure consistency
       refreshCodes();
     } catch (err: any) {
       console.error("Error deleting discount code:", err);
-      
+
       // Extract error message properly
       let errorMessage = "Failed to delete discount code";
       if (err.response?.data) {
         if (err.response.data.message) {
           errorMessage = err.response.data.message;
-        } else if (typeof err.response.data.error === 'string') {
+        } else if (typeof err.response.data.error === "string") {
           errorMessage = err.response.data.error;
         } else if (err.response.data.error?.message) {
           errorMessage = err.response.data.error.message;
@@ -158,7 +158,7 @@ export default function DiscountCodesClient({
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       toast.error(errorMessage);
     }
   };
@@ -168,7 +168,7 @@ export default function DiscountCodesClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-900">Discount Codes</h1>
         <button
           onClick={() => {
